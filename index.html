@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet"
+        href="https://www.gamergeeks.net/apps/minecraft/web-developer-tools/css-blocks-and-entities/icons-minecraft-0.4.css">
+    <style type="text/css" media="all">
+        body {
+            --progWidth: 380px;
+            --containerScale: 1.7;
+            --backgroundRotation: 90deg;
+            background: url("assets/skyblock.jpg");
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-attachment: fixed;
+            font-family: Sans-Serif;
+            font-weight: bold;
+        }
+
+        .prog {
+            width: var(--progWidth);
+            background-color: rgba(255, 255, 255, 0.2);
+            border: solid 1px white;
+            height: 35px;
+            border-radius: 30px;
+            display: block;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+            box-shadow: black 0px 0px 10px 0px;
+            font-size: 1.7em;
+            /* position: fixed; */
+            /* left: 50%; */
+            /* transform: translateX(-50%) scale(var(--containerScale)); */
+            margin: 5px 0px;
+            left: 50%;
+            position: relative;
+            transform: translateX(-50%);
+        }
+
+        .filled {
+            height: 100%;
+            width: 50%;
+            color: white;
+            position: relative;
+        }
+
+        .filled>span {
+            text-shadow: 0px 0px 5px black;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 4px;
+            position: absolute;
+            width: 3000px;
+        }
+
+        h2 {
+            color: white;
+            text-align: center;
+        }
+
+        #playerLocation {
+            position: fixed;
+            left: 50%;
+            top: 20px;
+            transform: translateX(-50%);
+            font-size: 1.6em;
+            color: white;
+        }
+
+
+        .icon-minecraft,
+        .icon-minecraft-sm {
+            display: inline-block;
+            vertical-align: middle;
+            background-image: url("https://www.gamergeeks.net/apps/minecraft/web-developer-tools/css-blocks-and-entities/icons-minecraft-0.4.png") !important;
+            background-repeat: no-repeat;
+
+            -ms-interpolation-mode: nearest-neighbor;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -o-pixelated;
+            image-rendering: crisp-edges;
+        }
+    </style>
+</head>
+
+<body>
+    <input type="color">
+    <h3 id="playerLocation">Location: Hub</h3>
+    <div></div>
+</body>
+<script>
+    const kraken = window.location.search.includes("kraken=1");
+    const locations = {
+        "combat_3": "The End",
+        "combat_1": "Spider's Den",
+        "dynamic": "Private Island",
+        "crimson_isle": "Crimson Isle",
+        "hub": "Village",
+        "mining_1": "Gold Mine",
+        "mining_2": "Deep Caverns",
+        "mining_3": "Dwarven Mines",
+        "dungeon_hub": "Dungeon Hub",
+        "farming_1": "The Barn",
+        "garden": "Garden",
+        "foraging_1": "The Park",
+        "winter": "Jerry Event"
+    }
+    window.skills = {}
+    window.playerStatus = {};
+    window.profiles = {};
+    const apiKey = "API KEY";
+    const player = "b876ec32e396476ba1158438d83c67d4";
+    function fetchAPI(path, callback) {
+        fetch(`https://api.hypixel.net/${path}`, {
+            headers: {
+                "API-Key": apiKey
+            }
+        })
+            .then(r => r.json())
+            .then(c => callback(c));
+    }
+    if (true) {
+        fetchAPI(`resources/skyblock/skills`, (skills) => {
+            window.skills = skills.skills;
+            fetchAPI('resources/skyblock/collections', (collections) => {
+                window.collections = collections.collections
+                setInterval(() => {
+                    fetchAPI('skyblock/profiles?uuid=' + player, (profiles) => {
+                        window.profiles = profiles.profiles;
+                        fetchAPI(`status?uuid=` + player, (status) => {
+                            window.playerStatus = status;
+                            parse();
+                        })
+                    })
+                }, 10000)
+            })
+        })
+
+    }
+    function cleanify(num, precision) {
+        if (num < 1000) {
+            return Math.round(num).toString();
+        } else if (num < 1000000) {
+            return (num / 1000).toFixed(precision) + 'k';
+        } else if (num < 1000000000) {
+            return (num / 1000000).toFixed(precision) + 'm';
+        } else if (num < 1000000000000) {
+            return (num / 1000000000).toFixed(precision) + 'b';
+        } else {
+            return (num / 1000000000000).toFixed(precision) + 't';
+        }
+    }
+
+    function parse() {
+        if (playerStatus.session.online) {
+            if (playerStatus.session.gameType == "SKYBLOCK") {
+                if (locations[playerStatus.session.mode]) {
+                    document.querySelector('#playerLocation').innerHTML = `Location: ${locations[playerStatus.session.mode]}`
+                } else {
+                    document.querySelector('#playerLocation').innerHTML = `Location: ${playerStatus.session.mode}`
+                }
+            } else {
+                document.querySelector('#playerLocation').innerHTML = `Location: ${playerStatus.session.gameType}`
+            }
+        } else {
+            document.querySelector('#playerLocation').innerHTML = `Offline`
+
+        }
+        if (true) {
+            const profile = profiles[0];
+            const namesShown = false;
+            const skillList = {
+                combat: {
+                    enabled: true,
+                    icon: "iron-sword",
+                    color: "skyblue",
+                    name: "Combat"
+                },
+                foraging: {
+                    enabled: true,
+                    icon: "oak-sapling",
+                    color: "green",
+                    name: "Foraging"
+                },
+                mining: {
+                    enabled: true,
+                    icon: "iron-pickaxe",
+                    color: "darkgray",
+                    name: "Mining"
+                },
+                fishing: {
+                    enabled: true,
+                    icon: "fishing-rod",
+                    color: "rgb(110, 110, 255)",
+                    name: "Fishing"
+                },
+                farming: {
+                    enabled: true,
+                    icon: "iron-hoe",
+                    color: "gold",
+                    name: "Farming"
+                },
+                enchanting: {
+                    enabled: true,
+                    icon: "enchanting-table",
+                    color: "rgb(150, 0, 255)",
+                    name: "Enchanting"
+                },
+                alchemy: {
+                    enabled: true,
+                    icon: "brewing-stand",
+                    color: "purple",
+                    name: "Alchemy"
+                },
+                carpentry: {
+                    enabled: true,
+                    icon: "crafting-table",
+                    color: "brown",
+                    name: "Carpentry"
+                },
+                runecrafting: {
+                    enabled: true,
+                    icon: "magma-cream",
+                    color: "hotpink",
+                    name: "Runecrafting"
+                },
+                social2: {
+                    enabled: true,
+                    icon: "emerald",
+                    color: "lightgreen",
+                    name: "Social"
+                },
+                taming: {
+                    enabled: true,
+                    icon: "spawn-egg-ghast",
+                    color: "darkgray",
+                    name: "Taming"
+                }
+
+            }
+            const collection = {
+                enabled: true,
+                icon: "lapis-lazuli",
+                id: "ink_sack:4",
+                name: "Oak Logs",
+                category: "mining",
+                color: "blue",
+            }
+            window.element = "<br><br>";
+            // profiles.forEach(profile => {
+            if (collection.enabled) {
+                let percentage = 100;
+                let usage = "0/0";
+                if (!(calculateCollectionProgress(collection.category, collection.id, profile).currentLevel > collections[collection.category.toUpperCase().replaceAll("2", "")].items[collection.id.toUpperCase()].tiers.length - 1)) {
+                    percentage = ((profile.members[player].collection[collection.id.toUpperCase()] / collections[collection.category.toUpperCase().replaceAll("2", "")].items[collection.id.toUpperCase()].tiers[calculateCollectionProgress(collection.category, collection.id, profile).currentLevel].amountRequired) * 100) || 100;
+                    usage = `${cleanify(profile.members[player].collection[collection.id.toUpperCase()], 2)} / ${cleanify(collections[collection.category.toUpperCase().replaceAll("2", "")].items[collection.id.toUpperCase()].tiers[calculateCollectionProgress(collection.category, collection.id, profile).currentLevel].amountRequired, 2)}`;
+                } else {
+                    usage = cleanify(profile.members[player].collection[collection.id.toUpperCase()], 2)
+                }
+                // console.log(calculateCollectionProgress(collection.category, collection.id, profile))
+                element += `
+                        <div class="prog">
+                            <div class="filled" style="width:${percentage}%; background-color:${collection.color};">
+                                <span>
+                                    ${`<i class="icon-minecraft icon-minecraft-${collection.icon}"></i> ${namesShown ? collection.name + ":" : ""} ${calculateCollectionProgress(collection.category, collection.id, profile).currentLevel} | ${usage}`}
+                                    </span>
+                                    </div>
+                                    </div>
+                                    `
+            }
+            document.querySelector('div').innerHTML = "";
+            for (skill in skillList) {
+                // console.log(`Adding Bar for skill: "${skill}"`);
+                element += `${exists(skill, profile) && skillList[skill].enabled ? `
+                    <div class="prog">
+                        <div class="filled" style="width:${getPercentage(skill, profile)}%; background-color:${skillList[skill].color};">
+                            <span>
+                                ${`<i class="icon-minecraft icon-minecraft-${skillList[skill].icon}"></i> ${namesShown ? skillList[skill].name + ":" : ""} ${calculateLevelProgress(skill, profile).currentLevel} | ${getUsage(skill, profile)}`}
+                            </span>
+                        </div>
+                    </div>
+                                ` : ""
+                    }`
+            }
+            window.element += `<h2>Coins: ${cleanify(profile.members[player].coin_purse, 2)}</h2>`;
+            document.querySelector('div').innerHTML += element
+            // });
+        }
+    }
+    function toRomanNum(int) {
+        if (int == 0) return 0
+        var lookup = { M: 1000, CM: 900, D: 500, CD: 400, C: 100, XC: 90, L: 50, XL: 40, X: 10, IX: 9, V: 5, IV: 4, I: 1 },
+            roman = '',
+            i;
+        for (i in lookup) {
+            while (int >= lookup[i]) {
+                roman += i;
+                int -= lookup[i];
+            }
+        }
+        return roman;
+    }
+
+    function calculateLevelProgress(type, profile) {
+        let currentLevel = 0;
+        let requiredExp = 0;
+        let expTowardsNextLevel = 0;
+        var levelRequirements = skills[type.toUpperCase().replaceAll("2", "")].levels
+        var currentExp = profile.members[player]["experience_skill_" + type]
+
+        for (const requirement of levelRequirements) {
+            if (currentExp >= requirement.totalExpRequired) {
+                currentLevel = requirement.level;
+                requiredExp = levelRequirements[currentLevel] ? levelRequirements[currentLevel].totalExpRequired - currentExp : 0;
+            } else {
+                expTowardsNextLevel = currentExp - (levelRequirements[currentLevel - 1] ? levelRequirements[currentLevel - 1].totalExpRequired : 0);
+                requiredExp = requirement.totalExpRequired - currentExp;
+                break;
+            }
+        }
+
+        return {
+            currentLevel: currentLevel,
+            expTowardsNextLevel: expTowardsNextLevel,
+            requiredExpForNextLevel: requiredExp
+        };
+    }
+    function calculateCollectionProgress(type, item, profile) {
+        let currentLevel = 0;
+        let requiredExp = 0;
+        let expTowardsNextLevel = 0;
+        var levelRequirements = collections[type.toUpperCase().replaceAll("2", "")].items[item.toUpperCase()].tiers
+        var currentExp = profile.members[player].collection[item.toUpperCase()]
+
+        for (const requirement of levelRequirements) {
+            if (currentExp >= requirement.amountRequired) {
+                currentLevel = requirement.tier;
+                requiredExp = levelRequirements[currentLevel] ? levelRequirements[currentLevel].amountRequired - currentExp : 0;
+            } else {
+                expTowardsNextLevel = currentExp - (levelRequirements[currentLevel - 1] ? levelRequirements[currentLevel - 1].amountRequired : 0);
+                requiredExp = requirement.amountRequired - currentExp;
+                break;
+            }
+        }
+
+        return {
+            currentLevel: currentLevel,
+            expTowardsNextLevel: expTowardsNextLevel,
+            requiredExpForNextLevel: requiredExp
+        };
+    }
+    function exists(type, profile) {
+        return profile.members[player]["experience_skill_" + type]
+    }
+    function getLevel(type, profile) {
+        return skills[type.toUpperCase().replaceAll("2", "")].levels.find(x => x.totalExpRequired > profile.members.fed6fbf0c3644cf1af7b24635e9e269c["experience_skill_" + type]).level
+    }
+    function getPercentage(type, profile) {
+        return (calculateLevelProgress(type, profile).expTowardsNextLevel / (calculateLevelProgress(type, profile).requiredExpForNextLevel + calculateLevelProgress(type, profile).expTowardsNextLevel)) * 100
+    }
+    function getUsage(type, profile) {
+        return `${cleanify(calculateLevelProgress(type, profile).expTowardsNextLevel, 2)} / ${cleanify(calculateLevelProgress(type, profile).requiredExpForNextLevel + calculateLevelProgress(type, profile).expTowardsNextLevel, 2)}`
+        // return `${cleanify(profile.members.fed6fbf0c3644cf1af7b24635e9e269c["experience_skill_" + type], 1)} / ${cleanify(skills[type.toUpperCase().replaceAll("2", "")].levels[skills[type.toUpperCase().replaceAll("2", "")].levels.findIndex(x => x.totalExpRequired > profile.members.fed6fbf0c3644cf1af7b24635e9e269c["experience_skill_" + type]) + 1].totalExpRequired, 1)}`
+    }
+</script>
+
+</html>
